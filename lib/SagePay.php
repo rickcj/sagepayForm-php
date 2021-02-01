@@ -541,19 +541,13 @@ class SagePay {
 	}
 
 	protected function encryptAndEncode($strIn) {
-		$strIn = $this->pkcs5_pad($strIn, 16);
-		return "@".bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $this->encryptPassword, $strIn, MCRYPT_MODE_CBC, $this->encryptPassword));
+		$strIn = str_pad($strIn,16,"\0");
+		return "@".bin2hex(openssl_encrypt($strIn, 'aes-128-cbc', $this->encryptPassword, OPENSSL_RAW_DATA, $this->encryptPassword));
 	}
 
 	protected function decodeAndDecrypt($strIn) {
 		$strIn = substr($strIn, 1);
 		$strIn = pack('H*', $strIn);
-		return mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $this->encryptPassword, $strIn, MCRYPT_MODE_CBC, $this->encryptPassword);
-	}
-
-
-	protected function pkcs5_pad($text, $blocksize)	{
-		$pad = $blocksize - (strlen($text) % $blocksize);
-		return $text . str_repeat(chr($pad), $pad);
+		return openssl_decrypt($strIn, 'aes-128-cbc', $this->encryptPassword, OPENSSL_RAW_DATA, $this->encryptPassword);
 	}
 }
